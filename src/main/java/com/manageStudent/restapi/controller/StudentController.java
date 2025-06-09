@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.manageStudent.restapi.constants.Messages;
 import com.manageStudent.restapi.dto.StudentRequestDTO;
 import com.manageStudent.restapi.entity.Student;
+import com.manageStudent.restapi.exception.GlobleException;
 import com.manageStudent.restapi.service.StudentService;
 import com.manageStudent.restapi.successResponce.ResponseMessage;
 import com.manageStudent.restapi.successResponce.SuccessResponce;
@@ -36,9 +37,15 @@ import jakarta.validation.Valid;
 @RequestMapping("/student")
 public class StudentController {
 
+    private final GlobleException globleException;
+
 	private static final Logger logger = LoggerFactory.getLogger(StudentController.class);
 	@Autowired
 	StudentService studentService;
+
+    StudentController(GlobleException globleException) {
+        this.globleException = globleException;
+    }
 	
 	@PostMapping("/addStudent")
 	public ResponseEntity<?> addStudent(@Valid @RequestBody StudentRequestDTO studentData, BindingResult bindingResult)
@@ -89,14 +96,21 @@ public class StudentController {
 	}
 	
 	@PatchMapping("/updateById/{id}")
-	public ResponseEntity<?> updateStudent(@PathVariable Integer id, @RequestBody Student studentData)
+	public ResponseEntity<?> updateStudent(@PathVariable Integer id, @Valid @RequestBody StudentRequestDTO studentData, BindingResult bindingResult)
 	{
-		Student studentUpdated = studentService.isStudentUpdated(id, studentData);
+		if(bindingResult.hasErrors())
+		{
+			Map<String, String> errors = new HashMap<>();
+			bindingResult.getFieldErrors().forEach(error->
+			errors.put(error.getField(), error.getDefaultMessage())
+			);
+			
+			ResponseMessage<Map<String, String>> response = new ResponseMessage<>(HttpStatus.BAD_REQUEST,"",null);
+			return ResponseEntity.status(response.getStatus()).body(response);
+		}
+		ResponseEntity<?> response = studentService.isStudentUpdated(id, studentData);
 		
-		SuccessResponce<?> responce = new SuccessResponce<>
-		(HttpStatus.OK.value(),Messages.STUDENT_UPDATED_SUCCESSFULLY,HttpStatus.OK,studentUpdated);
-		
-		return ResponseEntity.ok(responce);
+		return response;
 	}
 
 }

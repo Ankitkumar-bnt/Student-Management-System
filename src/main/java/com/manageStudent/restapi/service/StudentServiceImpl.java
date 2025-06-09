@@ -137,14 +137,15 @@ public class StudentServiceImpl implements StudentService {
 	@Override
 	public ResponseEntity<?> isStudentDeleted(Integer id) {
 		
-		Optional<Student> studentData = studentRepository.findById(id);
-		if(studentData.isEmpty())
-		{
-			ResponseMessage<StudentResponseDTO> response = new ResponseMessage<>(HttpStatus.NOT_FOUND, Messages.STUDENT_NOT_FOUND_BY_ID+id, null);
-			return ResponseEntity.status(response.getStatus()).body(response);
-		}
-		
+		Optional<Student> studentData = null;
 		try {
+			studentData = studentRepository.findById(id);
+			if(studentData.isEmpty())
+			{
+				ResponseMessage<StudentResponseDTO> response = new ResponseMessage<>(HttpStatus.NOT_FOUND, Messages.STUDENT_NOT_FOUND_BY_ID+id, null);
+				return ResponseEntity.status(response.getStatus()).body(response);
+			}
+		
 			studentRepository.deleteById(id);
 		}catch(Exception e)
 		{
@@ -161,23 +162,55 @@ public class StudentServiceImpl implements StudentService {
 //======================================== Delete By Id ======================================================================	
 	
 	@Override
-	public Student isStudentUpdated(Integer id, Student studentData) {
-		Student foundStudentById = studentRepository.findById(id).orElseThrow(()->
-		new StudentNotDeletedException(Messages.UPDATION_FAILED));
+	public ResponseEntity<?> isStudentUpdated(Integer id, StudentRequestDTO studentData) {
+		Optional<Student> studentById = null;
+		try {
+			studentById = studentRepository.findById(id);
+			if(studentById.isEmpty())
+			{
+				ResponseMessage<StudentResponseDTO> response = new ResponseMessage<>(HttpStatus.NOT_FOUND, Messages.STUDENT_NOT_FOUND_BY_ID+id, null);
+				return ResponseEntity.status(response.getStatus()).body(response);
+			}
+		}catch(Exception e)
+		{
+			ResponseMessage<StudentResponseDTO> response = new ResponseMessage<>(HttpStatus.INTERNAL_SERVER_ERROR, Messages.DATABASE_ERROR, null);
+			return ResponseEntity.status(response.getStatus()).body(response);
+		}
+		
+		Student student = studentById.get();
+		
+		if(studentData.getStudentEmail() != null && !(studentData.getStudentEmail().equals(student.getStudentEmail()))){
+			if(studentRepository.existsByStudentEmail(studentData.getStudentEmail())){
+				ResponseMessage<StudentResponseDTO> stdRes = new ResponseMessage<>(HttpStatus.BAD_REQUEST, 
+						Messages.EMAIL_ALREADY_EXISTS,null); 
+				
+				return ResponseEntity.status(stdRes.getStatus()).body(stdRes);
+			}
+			else 
+				student.setStudentEmail(studentData.getStudentEmail());
+		}
+		
+		if(studentData.getStudentContact() != null && !studentData.getStudentContact().equals(student.getStudentContact())) {
+			if(studentRepository.existsByStudentContact(studentData.getStudentContact())){
+				ResponseMessage<StudentResponseDTO> stdRes = new ResponseMessage<>(HttpStatus.BAD_REQUEST, 
+				Messages.CONTACT_ALREADY_EXISTS,null); 
+		
+				return ResponseEntity.status(stdRes.getStatus()).body(stdRes);
+			}
+			else
+				student.setStudentContact(studentData.getStudentContact());
+		}
 		
 		if(studentData.getStudentName()!=null)
-			foundStudentById.setStudentName(studentData.getStudentName());
-		
-		if(studentData.getStudentEmail()!=null)
-			foundStudentById.setStudentEmail(studentData.getStudentEmail());
-		
-		if(studentData.getStudentContact()!=null)
-			foundStudentById.setStudentContact(studentData.getStudentContact());
+			student.setStudentName(studentData.getStudentName());
 		
 		if(studentData.getStudentMarks() >= 0)
-			foundStudentById.setStudentMarks(studentData.getStudentMarks());
+			student.setStudentMarks(studentData.getStudentMarks());
 		
-		return studentRepository.save(foundStudentById);
+		Student save = studentRepository.save(student);
+		StudentResponseDTO responseDTO = mapper.toResponseDTO(save);
+		ResponseMessage<StudentResponseDTO> response = new ResponseMessage<>(HttpStatus.OK, Messages.STUDENT_UPDATED_SUCCESSFULLY,responseDTO);
+		return ResponseEntity.status(response.getStatus()).body(response);
 	}
 
 //======================================== Update By Id =======================================================================

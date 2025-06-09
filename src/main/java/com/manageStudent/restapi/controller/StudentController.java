@@ -83,12 +83,9 @@ public class StudentController {
 	@DeleteMapping("/deleteById")
 	public ResponseEntity<?> deleteStudent(@RequestParam Integer id)
 	{
-		Student studentDeleted = studentService.isStudentDeleted(id);
-	
-		SuccessResponce<?> responce = new SuccessResponce<>
-		(HttpStatus.OK.value(),Messages.STUDENT_DELETED_SUCCESSFULLY,HttpStatus.OK,studentDeleted);
+		ResponseEntity<?> studentDeleted = studentService.isStudentDeleted(id);
 		
-		return ResponseEntity.ok(responce);
+		return studentDeleted;
 	}
 	
 	@PatchMapping("/updateById/{id}")

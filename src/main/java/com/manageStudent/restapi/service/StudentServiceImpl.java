@@ -81,7 +81,7 @@ public class StudentServiceImpl implements StudentService {
 			all = studentRepository.findAll();
 		}catch(Exception e)
 		{
-			ResponseMessage<StudentResponseDTO> emptyList = new ResponseMessage<>(HttpStatus.NO_CONTENT, 
+			ResponseMessage<StudentResponseDTO> emptyList = new ResponseMessage<>(HttpStatus.INTERNAL_SERVER_ERROR, 
 					Messages.DATABASE_ERROR,null); 
 			
 			return ResponseEntity.status(emptyList.getStatus()).body(emptyList);
@@ -117,28 +117,45 @@ public class StudentServiceImpl implements StudentService {
 			studentData = studentRepository.findById(studentId);
 		}catch(Exception e)
 		{
-			ResponseMessage<Student> response = new ResponseMessage<>(HttpStatus.NOT_FOUND, Messages.DATABASE_ERROR, null);
+			ResponseMessage<StudentResponseDTO> response = new ResponseMessage<>(HttpStatus.INTERNAL_SERVER_ERROR, Messages.DATABASE_ERROR, null);
 			return ResponseEntity.status(response.getStatus()).body(response);
 		}
 		
 		if(studentData.isEmpty()) {
-			ResponseMessage<Student> response = new ResponseMessage<>(HttpStatus.NOT_FOUND, Messages.STUDENT_NOT_FOUND_BY_ID, null);
+			ResponseMessage<StudentResponseDTO> response = new ResponseMessage<>(HttpStatus.NOT_FOUND, Messages.STUDENT_NOT_FOUND_BY_ID+studentId, null);
 			return ResponseEntity.status(response.getStatus()).body(response);
 		}
 		
-		ResponseMessage<Student> response = new ResponseMessage<>(HttpStatus.OK, Messages.STUDENT_FOUND_BY_ID, studentData.get());
+		StudentResponseDTO studentFound = mapper.toResponseDTO(studentData.get());
+		
+		ResponseMessage<StudentResponseDTO> response = new ResponseMessage<>(HttpStatus.OK, Messages.STUDENT_FOUND_BY_ID, studentFound);
 		return ResponseEntity.status(response.getStatus()).body(response);
 	}
 
 //======================================= Find By Id ==========================================================================
 	
 	@Override
-	public Student isStudentDeleted(Integer id) {
+	public ResponseEntity<?> isStudentDeleted(Integer id) {
 		
-		Student deletedStudent = studentRepository.findById(id).orElseThrow(()->
-		new StudentNotDeletedException(Messages.STUDENT_NOT_DELETED));//Supplier required
-		studentRepository.deleteById(id);
-		return deletedStudent;
+		Optional<Student> studentData = studentRepository.findById(id);
+		if(studentData.isEmpty())
+		{
+			ResponseMessage<StudentResponseDTO> response = new ResponseMessage<>(HttpStatus.NOT_FOUND, Messages.STUDENT_NOT_FOUND_BY_ID+id, null);
+			return ResponseEntity.status(response.getStatus()).body(response);
+		}
+		
+		try {
+			studentRepository.deleteById(id);
+		}catch(Exception e)
+		{
+			ResponseMessage<StudentResponseDTO> response = new ResponseMessage<>(HttpStatus.INTERNAL_SERVER_ERROR, Messages.DATABASE_ERROR, null);
+			return ResponseEntity.status(response.getStatus()).body(response);
+		}
+		
+		StudentResponseDTO studentFound = mapper.toResponseDTO(studentData.get());
+		
+		ResponseMessage<StudentResponseDTO> response = new ResponseMessage<>(HttpStatus.OK, Messages.STUDENT_DELETED_SUCCESSFULLY, studentFound);
+		return ResponseEntity.status(response.getStatus()).body(response);
 	}
 
 //======================================== Delete By Id ======================================================================	

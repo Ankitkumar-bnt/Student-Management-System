@@ -14,7 +14,7 @@ public interface StudentService {
 	
 	ResponseEntity<?> findAllStudent();
 	
-	Student isFoundStudentById(Integer studentId);
+	ResponseEntity<?> isFoundStudentById(Integer studentId);
 
 	Student isStudentDeleted(Integer id);
 

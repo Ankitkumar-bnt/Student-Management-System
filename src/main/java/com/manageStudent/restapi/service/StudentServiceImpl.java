@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -109,13 +110,24 @@ public class StudentServiceImpl implements StudentService {
 //====================================== Find All Student =====================================================================
 	
 	@Override
-	public Student isFoundStudentById(Integer studentId) {
+	public ResponseEntity<?> isFoundStudentById(Integer studentId) {
 
-		Optional<Student> studentData = studentRepository.findById(studentId);
-		if(studentData.isEmpty()) {
-			throw new StudentNotFoundException(Messages.STUDENT_NOT_FOUND);
+		Optional<Student> studentData = null;
+		try {
+			studentData = studentRepository.findById(studentId);
+		}catch(Exception e)
+		{
+			ResponseMessage<Student> response = new ResponseMessage<>(HttpStatus.NOT_FOUND, Messages.DATABASE_ERROR, null);
+			return ResponseEntity.status(response.getStatus()).body(response);
 		}
-		return studentData.get();
+		
+		if(studentData.isEmpty()) {
+			ResponseMessage<Student> response = new ResponseMessage<>(HttpStatus.NOT_FOUND, Messages.STUDENT_NOT_FOUND_BY_ID, null);
+			return ResponseEntity.status(response.getStatus()).body(response);
+		}
+		
+		ResponseMessage<Student> response = new ResponseMessage<>(HttpStatus.OK, Messages.STUDENT_FOUND_BY_ID, studentData.get());
+		return ResponseEntity.status(response.getStatus()).body(response);
 	}
 
 //======================================= Find By Id ==========================================================================

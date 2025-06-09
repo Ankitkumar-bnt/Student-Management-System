@@ -68,21 +68,16 @@ public class StudentController {
 		ResponseEntity<?> studentList = studentService.findAllStudent();
 		
 		logger.info("============ Studnet data fount is "+studentList+" ============");
-//		SuccessResponce<?> responce = new SuccessResponce<>
-//		(HttpStatus.OK.value(),Messages.ALL_STUDENT_FOUND,HttpStatus.OK,studentList);
 		
-		return ResponseEntity.ok(studentList);
+		return studentList;
 	}
 	
 	@PostMapping("/findById")
 	public ResponseEntity<?> findStudentById(@RequestParam Integer id)
 	{
-		Student studentFoundById = studentService.isFoundStudentById(id);
-	
-		SuccessResponce<?> responce = new SuccessResponce<>
-		(HttpStatus.OK.value(),Messages.STUDENT_FOUND_BY_ID+id,HttpStatus.OK,studentFoundById);
+		ResponseEntity<?> studentFoundById = studentService.isFoundStudentById(id);
 		
-		return ResponseEntity.ok(responce);
+		return studentFoundById;
 	}
 	
 	@DeleteMapping("/deleteById")

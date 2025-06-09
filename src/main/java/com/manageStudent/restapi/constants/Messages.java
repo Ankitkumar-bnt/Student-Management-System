@@ -12,4 +12,9 @@ public class Messages {
 	public static String STUDENT_NOT_DELETED ="Student not deleted!, Something went wrong!";
 	public static String UPDATION_FAILED = "Student updation failed!. Please try again! ";
 	public static String STUDENT_UPDATED_SUCCESSFULLY = "Student updated successfully!";
+	
+	public static String EMAIL_ALREADY_EXISTS = "Email is already exists!";
+	public static String CONTACT_ALREADY_EXISTS = "Contact is already exists!";
+
+	public static String DATABASE_ERROR = "Error occours in Database!";
 }

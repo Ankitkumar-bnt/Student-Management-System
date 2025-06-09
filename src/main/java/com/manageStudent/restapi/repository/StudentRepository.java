@@ -8,4 +8,7 @@ import com.manageStudent.restapi.entity.Student;
 @Repository
 public interface StudentRepository extends JpaRepository<Student, Integer>{
 
+	boolean existsByStudentEmail(String email);
+	
+	boolean existsByStudentContact(String contact);
 }

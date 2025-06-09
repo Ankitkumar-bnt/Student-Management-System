@@ -1,45 +1,113 @@
 package com.manageStudent.restapi.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.manageStudent.restapi.constants.Messages;
+import com.manageStudent.restapi.controller.StudentController;
+import com.manageStudent.restapi.dto.StudentRequestDTO;
+import com.manageStudent.restapi.dto.StudentResponseDTO;
 import com.manageStudent.restapi.entity.Student;
 import com.manageStudent.restapi.exception.EmptyStudentListException;
 import com.manageStudent.restapi.exception.StudentNotDeletedException;
 import com.manageStudent.restapi.exception.StudentNotFoundException;
-import com.manageStudent.restapi.exception.StudentNotSavedException;
+import com.manageStudent.restapi.mapper.StudentMapper;
 import com.manageStudent.restapi.repository.StudentRepository;
+import com.manageStudent.restapi.successResponce.ResponseMessage;
 
 @Service
 public class StudentServiceImpl implements StudentService {
 
+	private static final Logger logger = LoggerFactory.getLogger(StudentController.class);
 	@Autowired
 	StudentRepository studentRepository;
 
+	@Autowired
+	private StudentMapper mapper;
 	
 	@Override
-	public Student isAddStudent(Student studentData) {
+	public ResponseEntity<?> isAddStudent(StudentRequestDTO studentData) {
 		
+		logger.info("======= Service: In isAddStudent() ========");
 		
-		Student saveStudent = studentRepository.save(studentData);
-		if(saveStudent == null)
-			throw new StudentNotSavedException(Messages.STUDENT_NOT_ADDED);
-		return saveStudent;
+		Student savedStudent = null;
+		ResponseMessage<StudentResponseDTO> response = null;
 		
+		try {
+			if(studentRepository.existsByStudentEmail(studentData.getStudentEmail())){
+				ResponseMessage<StudentResponseDTO> stdRes = new ResponseMessage<>(HttpStatus.BAD_REQUEST, 
+						Messages.EMAIL_ALREADY_EXISTS,null); 
+				
+				return ResponseEntity.status(stdRes.getStatus()).body(stdRes);
+			}
+			
+			if(studentRepository.existsByStudentContact(studentData.getStudentContact())){
+				ResponseMessage<StudentResponseDTO> stdRes = new ResponseMessage<>(HttpStatus.BAD_REQUEST, 
+						Messages.CONTACT_ALREADY_EXISTS,null); 
+				
+				return ResponseEntity.status(stdRes.getStatus()).body(stdRes);
+			}
+			
+			Student student = mapper.toEntity(studentData);
+		
+			savedStudent = studentRepository.save(student);
+			mapper.toResponseDTO(savedStudent);
+			response = new ResponseMessage<>(HttpStatus.OK, Messages.STUDENT_ADDED_SUCCESSFULLY, mapper.toResponseDTO(savedStudent));
+			return ResponseEntity.status(response.getStatus()).body(response);
+		}
+		catch (Exception e) {
+			response = new ResponseMessage<>(HttpStatus.INTERNAL_SERVER_ERROR, Messages.STUDENT_NOT_ADDED, null);
+			return ResponseEntity.status(response.getStatus()).body(response);
+		}
 	}
 
+//=========================================== Add Student ====================================================================
+	
 	@Override
-	public List<Student> findAllStudent() {
-		List<Student> all = studentRepository.findAll();
+	public ResponseEntity<?> findAllStudent() {
+		
+		List<Student> all = null;
+		
+		try {
+			all = studentRepository.findAll();
+		}catch(Exception e)
+		{
+			ResponseMessage<StudentResponseDTO> emptyList = new ResponseMessage<>(HttpStatus.NO_CONTENT, 
+					Messages.DATABASE_ERROR,null); 
+			
+			return ResponseEntity.status(emptyList.getStatus()).body(emptyList);
+		}
+		
 		if(all.isEmpty())
-			throw new EmptyStudentListException(Messages.STUDENT_NOT_FOUND);
-		return all;
+		{
+			ResponseMessage<StudentResponseDTO> emptyList = new ResponseMessage<>(HttpStatus.NO_CONTENT, 
+					Messages.STUDENT_NOT_FOUND,null); 
+			
+			return ResponseEntity.status(emptyList.getStatus()).body(emptyList);
+			
+		}
+		
+		List<StudentResponseDTO> allStudent = new ArrayList<>();
+		for(Student s: all)
+		{
+			allStudent.add(mapper.toResponseDTO(s));
+		}
+		
+		ResponseMessage<List<StudentResponseDTO>> response = new ResponseMessage<>(HttpStatus.OK, 
+				Messages.ALL_STUDENT_FOUND, allStudent);
+		return ResponseEntity.status(response.getStatus()).body(response);
 	}
 
+//====================================== Find All Student =====================================================================
+	
 	@Override
 	public Student isFoundStudentById(Integer studentId) {
 
@@ -50,6 +118,8 @@ public class StudentServiceImpl implements StudentService {
 		return studentData.get();
 	}
 
+//======================================= Find By Id ==========================================================================
+	
 	@Override
 	public Student isStudentDeleted(Integer id) {
 		
@@ -59,6 +129,8 @@ public class StudentServiceImpl implements StudentService {
 		return deletedStudent;
 	}
 
+//======================================== Delete By Id ======================================================================	
+	
 	@Override
 	public Student isStudentUpdated(Integer id, Student studentData) {
 		Student foundStudentById = studentRepository.findById(id).orElseThrow(()->
@@ -79,4 +151,5 @@ public class StudentServiceImpl implements StudentService {
 		return studentRepository.save(foundStudentById);
 	}
 
+//======================================== Update By Id =======================================================================
 }

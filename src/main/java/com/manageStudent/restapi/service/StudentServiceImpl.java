@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -17,10 +16,8 @@ import com.manageStudent.restapi.controller.StudentController;
 import com.manageStudent.restapi.dto.StudentRequestDTO;
 import com.manageStudent.restapi.dto.StudentResponseDTO;
 import com.manageStudent.restapi.entity.Student;
-import com.manageStudent.restapi.exception.EmptyStudentListException;
-import com.manageStudent.restapi.exception.StudentNotDeletedException;
-import com.manageStudent.restapi.exception.StudentNotFoundException;
 import com.manageStudent.restapi.mapper.StudentMapper;
+import com.manageStudent.restapi.mapper.StudentMapperImpl;
 import com.manageStudent.restapi.repository.StudentRepository;
 import com.manageStudent.restapi.successResponce.ResponseMessage;
 
@@ -34,6 +31,10 @@ public class StudentServiceImpl implements StudentService {
 	@Autowired
 	private StudentMapper mapper;
 	
+	public void setMapper(StudentMapperImpl mapper) {
+	    this.mapper = mapper;
+	}
+
 	@Override
 	public ResponseEntity<?> isAddStudent(StudentRequestDTO studentData) {
 		
@@ -61,7 +62,7 @@ public class StudentServiceImpl implements StudentService {
 		
 			savedStudent = studentRepository.save(student);
 			mapper.toResponseDTO(savedStudent);
-			response = new ResponseMessage<>(HttpStatus.OK, Messages.STUDENT_ADDED_SUCCESSFULLY, mapper.toResponseDTO(savedStudent));
+			response = new ResponseMessage<>(HttpStatus.CREATED, Messages.STUDENT_ADDED_SUCCESSFULLY, mapper.toResponseDTO(savedStudent));
 			return ResponseEntity.status(response.getStatus()).body(response);
 		}
 		catch (Exception e) {

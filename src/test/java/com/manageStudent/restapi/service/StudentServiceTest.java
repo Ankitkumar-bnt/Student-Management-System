@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -38,6 +39,7 @@ public class StudentServiceTest {
 	private StudentRequestDTO request;
 	private Student student;
 	private int studentId;
+	private int studentNotExitId;
 	
 	@InjectMocks
 	private StudentServiceImpl service;
@@ -72,6 +74,7 @@ public class StudentServiceTest {
 //		field.setAccessible(true);
 //		field.set(service, mapper);
 		studentId = 5;
+		studentNotExitId = 99;
 		request = buildStudentRequestDTO("Rock", "rock@gamil.com", "9966332255", 88.00);
 		student = buildStudentEntity(5, "Rock", "rock@gamil.com", "9966332255", 88.00);
 	}
@@ -255,6 +258,93 @@ public class StudentServiceTest {
 		assertEquals(student.getStudentMarks(), dto.getStudentMarks());
 	}
 	
+	@Test
+	void findStudentById_whenIdNotExists_returnsNotFound()
+	{
+		when(repo.findById(studentNotExitId)).thenReturn(Optional.empty());
+		
+		ResponseEntity<?> response = service.isFoundStudentById(studentNotExitId);
+		
+		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+		
+		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
+		assertNotNull(body);
+		assertEquals(Messages.STUDENT_NOT_FOUND_BY_ID + studentNotExitId, body.getMessage());
+		
+		assertNull(body.getData());
+	}
+	
+	@Test
+	void findStudentById_whenDatabaseFails_returnsInternalServerError()
+	{
+		when(repo.findById(studentId)).thenThrow(new RuntimeException("Database down"));
+		
+		ResponseEntity<?> response = service.isFoundStudentById(studentId);
+		
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+		
+		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
+		assertNotNull(body);
+		
+		assertEquals(Messages.DATABASE_ERROR, body.getMessage());
+		assertNull(body.getData());
+	}
+	
+//================================ Delete Student By Id ===================================================
+	
+	@Test
+	void deleteStudentById_whenIdExists_returnsDeletedStudentData()
+	{
+		when(repo.findById(studentId)).thenReturn(Optional.of(student));
+		
+		doNothing().when(repo).deleteById(studentId);
+		
+		ResponseEntity<?> response = service.isStudentDeleted(studentId);
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		
+		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
+		assertNotNull(body);
+		assertEquals(Messages.STUDENT_DELETED_SUCCESSFULLY, body.getMessage());
+		
+		StudentResponseDTO dto = (StudentResponseDTO) body.getData();
+		assertNotNull(dto);
+		assertEquals(student.getStudentName(), dto.getStudentName());
+		assertEquals(student.getStudentEmail(), dto.getStudentEmail());
+		assertEquals(student.getStudentContact(), dto.getStudentContact());
+		assertEquals(student.getStudentMarks(), dto.getStudentMarks());
+	}
+	
+	@Test
+	void deleteStudentById_whenIdNotExists_returnsNotFound()
+	{
+		when(repo.findById(studentNotExitId)).thenReturn(Optional.empty());
+		
+		ResponseEntity<?> response = service.isFoundStudentById(studentNotExitId);
+		
+		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+		
+		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
+		assertNotNull(body);
+		assertEquals(Messages.STUDENT_NOT_FOUND_BY_ID + studentNotExitId, body.getMessage());
+		
+		assertNull(body.getData());
+	}
+	
+	@Test
+	void deleteStudentById_whenDatabaseFails_returnsInternalServerError()
+	{
+		when(repo.findById(studentId)).thenThrow(new RuntimeException("Database down"));
+		
+		ResponseEntity<?> response = service.isFoundStudentById(studentId);
+		
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+		
+		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
+		assertNotNull(body);
+		
+		assertEquals(Messages.DATABASE_ERROR, body.getMessage());
+		assertNull(body.getData());
+	}
 }
 
 

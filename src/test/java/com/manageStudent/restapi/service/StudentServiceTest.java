@@ -37,7 +37,9 @@ public class StudentServiceTest {
 	
 	private final StudentMapperImpl mapper = new StudentMapperImpl();
 	private StudentRequestDTO request;
+	private StudentRequestDTO updateRequest;
 	private Student student;
+	private Student updatedStudent;
 	private int studentId;
 	private int studentNotExitId;
 	
@@ -76,7 +78,9 @@ public class StudentServiceTest {
 		studentId = 5;
 		studentNotExitId = 99;
 		request = buildStudentRequestDTO("Rock", "rock@gamil.com", "9966332255", 88.00);
-		student = buildStudentEntity(5, "Rock", "rock@gamil.com", "9966332255", 88.00);
+		student = buildStudentEntity(studentId, "Rock", "rock@gamil.com", "9966332255", 88.00);
+		updatedStudent = buildStudentEntity(studentId, "The Rock", "the.rock@gmail.com", "9922111111", 99.99);
+		updateRequest = buildStudentRequestDTO("The Rock", "the.rock@gmail.com", "9922111111", 99.99);
 	}
 	
 //================================= Add Student Test ==================================================================	
@@ -84,35 +88,14 @@ public class StudentServiceTest {
 	@Test
 	void addStudent_whenValidRequest_returnsCreatedResponse()
 	{
-//		StudentRequestDTO request = new StudentRequestDTO();
-//		request.setStudentName("Bob");
-//		request.setStudentEmail("bob@gmail.com");
-//		request.setStudentContact("9988776655");
-//		request.setStudentMarks(88);
-		
-//		Student student = new Student();
-//		student.setStudentId(1);
-//		student.setStudentName(request.getStudentName());
-//		student.setStudentEmail(request.getStudentEmail());
-//		student.setStudentContact(request.getStudentContact());
-//		student.setStudentMarks(request.getStudentMarks());
-		
 		when(repo.save(any(Student.class))).thenReturn(student);
-		
 		ResponseEntity<?> response = service.isAddStudent(request);
-		
 		assertEquals(HttpStatus.CREATED, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>)response.getBody();
-		
 		assertNotNull(body);
-		
 		assertEquals(Messages.STUDENT_ADDED_SUCCESSFULLY, body.getMessage());
-		
 		StudentResponseDTO responseDTO = (StudentResponseDTO) body.getData();
-		
 		assertNotNull(responseDTO);
-		
 		assertEquals(request.getStudentName(), responseDTO.getStudentName());
 		assertEquals(request.getStudentEmail(), responseDTO.getStudentEmail());
 		assertEquals(request.getStudentContact(), responseDTO.getStudentContact());
@@ -122,12 +105,6 @@ public class StudentServiceTest {
 	@Test
 	void addStudent_whenEmailExists_returnsBadRequest()
 	{
-//		StudentRequestDTO request = new StudentRequestDTO();
-//		request.setStudentName("Bob");
-//		request.setStudentEmail("bob@gmail.com");
-//		request.setStudentContact("9988776655");
-//		request.setStudentMarks(88);
-		
 		when(repo.existsByStudentEmail(request.getStudentEmail())).thenReturn(true);
 		
 		ResponseEntity<?> response = service.isAddStudent(request);
@@ -140,13 +117,7 @@ public class StudentServiceTest {
 	
 	@Test
 	void addStudent_whenContactExists_returnsBadRequest()
-	{
-//		StudentRequestDTO request = new StudentRequestDTO();
-//		request.setStudentName("Bob");
-//		request.setStudentEmail("bob@gmail.com");
-//		request.setStudentContact("9988776655");
-//		request.setStudentMarks(88);
-		
+	{	
 		when(repo.existsByStudentContact(request.getStudentContact())).thenReturn(true);
 		
 		ResponseEntity<?> response = service.isAddStudent(request);
@@ -161,22 +132,13 @@ public class StudentServiceTest {
 	@Test
 	void addStudent_whenDatabaseFails_returnsInternalServerError()
 	{
-//		StudentRequestDTO request = new StudentRequestDTO();
-//		request.setStudentName("Bob");
-//		request.setStudentEmail("bob@gmail.com");
-//		request.setStudentContact("9988776655");
-//		request.setStudentMarks(88);
-		
 		when(repo.existsByStudentEmail(request.getStudentEmail())).thenReturn(false);
 		when(repo.existsByStudentContact(request.getStudentContact())).thenReturn(false);
 		when(repo.save(any(Student.class))).thenThrow(new RuntimeException("DB error"));
 		
 		ResponseEntity<?> response = service.isAddStudent(request);
-		
 		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
-		
 		assertEquals(Messages.STUDENT_NOT_ADDED, body.getMessage());
 	}
 //================================== Find All Student Test ==========================================================
@@ -332,6 +294,88 @@ public class StudentServiceTest {
 	
 	@Test
 	void deleteStudentById_whenDatabaseFails_returnsInternalServerError()
+	{
+		when(repo.findById(studentId)).thenThrow(new RuntimeException("Database down"));
+		
+		ResponseEntity<?> response = service.isFoundStudentById(studentId);
+		
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+		
+		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
+		assertNotNull(body);
+		
+		assertEquals(Messages.DATABASE_ERROR, body.getMessage());
+		assertNull(body.getData());
+	}
+	
+//============================== Update Student By Id ===========================================================
+	
+	@Test
+	void updateStudentById_whenIdExists_returnsStudentUpdatedData()
+	{
+		when(repo.findById(studentId)).thenReturn(Optional.of(student));
+		
+		when(repo.save(any(Student.class))).thenReturn(updatedStudent);
+		
+		ResponseEntity<?> response = service.isStudentUpdated(studentId, request);
+		
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		
+		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
+		assertNotNull(body);
+		assertEquals(Messages.STUDENT_UPDATED_SUCCESSFULLY, body.getMessage());
+		
+		StudentResponseDTO dto = (StudentResponseDTO) body.getData();
+		assertEquals(updatedStudent.getStudentName(), dto.getStudentName());
+		assertEquals(updatedStudent.getStudentEmail(), dto.getStudentEmail());
+		assertEquals(updatedStudent.getStudentContact(), dto.getStudentContact());
+		assertEquals(updatedStudent.getStudentMarks(), dto.getStudentMarks());
+	}
+	
+	@Test
+	void updateStudnetById_whenIdNotExists_returnNotFound()
+	{
+		when(repo.findById(studentNotExitId)).thenReturn(Optional.empty());
+		
+		ResponseEntity<?> response = service.isFoundStudentById(studentNotExitId);
+		
+		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+		
+		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
+		assertNotNull(body);
+		assertEquals(Messages.STUDENT_NOT_FOUND_BY_ID + studentNotExitId, body.getMessage());
+		
+		assertNull(body.getData());
+	}
+	
+	@Test
+	void updateStudentById_whenEmailExists_returnBadRequest()
+	{
+		when(repo.existsByStudentEmail(updateRequest.getStudentEmail())).thenReturn(true);
+		
+		ResponseEntity<?> response = service.isAddStudent(updateRequest);
+		
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+		
+		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
+		assertEquals(Messages.EMAIL_ALREADY_EXISTS, body.getMessage());
+	}
+	
+	@Test
+	void updateStudentById_whenContactExists_returnBadRequest()
+	{
+		when(repo.existsByStudentContact(updateRequest.getStudentContact())).thenReturn(true);
+		
+		ResponseEntity<?> response = service.isAddStudent(updateRequest);
+		
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+		
+		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
+		assertEquals(Messages.CONTACT_ALREADY_EXISTS, body.getMessage());
+	}
+	
+	@Test
+	void updateStudentById_whenDatabaseFails_returnInternalServerError()
 	{
 		when(repo.findById(studentId)).thenThrow(new RuntimeException("Database down"));
 		

@@ -106,11 +106,8 @@ public class StudentServiceTest {
 	void addStudent_whenEmailExists_returnsBadRequest()
 	{
 		when(repo.existsByStudentEmail(request.getStudentEmail())).thenReturn(true);
-		
 		ResponseEntity<?> response = service.isAddStudent(request);
-		
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
 		assertEquals(Messages.EMAIL_ALREADY_EXISTS, body.getMessage());
 	}
@@ -119,11 +116,8 @@ public class StudentServiceTest {
 	void addStudent_whenContactExists_returnsBadRequest()
 	{	
 		when(repo.existsByStudentContact(request.getStudentContact())).thenReturn(true);
-		
 		ResponseEntity<?> response = service.isAddStudent(request);
-		
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
 		assertEquals(Messages.CONTACT_ALREADY_EXISTS, body.getMessage());
 	}
@@ -147,20 +141,14 @@ public class StudentServiceTest {
 	void findAllStudents_whenStudentsExist_returnsStudentList(){
 		
 		when(repo.findAll()).thenReturn(List.of(student));
-		
 		ResponseEntity<?> response = service.findAllStudent();
-		
 		assertEquals(HttpStatus.OK, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
-		
 		assertEquals(Messages.ALL_STUDENT_FOUND, body.getMessage());
 		
 		@SuppressWarnings("unchecked")
 		List<StudentResponseDTO> responseDTO = (List<StudentResponseDTO>) body.getData();
-		
 		StudentResponseDTO dto = responseDTO.get(0);
-		
 		assertEquals(student.getStudentName(), dto.getStudentName());
 		assertEquals(student.getStudentEmail(), dto.getStudentEmail());
 		assertEquals(student.getStudentContact(), dto.getStudentContact());
@@ -171,13 +159,9 @@ public class StudentServiceTest {
 	void findAllStudents_whenStudentListEmpty_returnsNoContent()
 	{
 		when(repo.findAll()).thenReturn(List.of());
-		
 		ResponseEntity<?> response = service.findAllStudent();
-		
 		assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
-		
 		assertEquals(Messages.STUDENT_NOT_FOUND, body.getMessage());
 		assertNull(body.getData());
 	}
@@ -186,13 +170,9 @@ public class StudentServiceTest {
 	void findAllStudents_whenDatabaseFails_returnsInternalServerError()
 	{
 		when(repo.findAll()).thenThrow(new RuntimeException("Database down"));
-		
 		ResponseEntity<?> response = service.findAllStudent();
-		
 		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
-		
 		assertEquals(Messages.DATABASE_ERROR, body.getMessage());
 		assertNull(body.getData());
 	}
@@ -203,15 +183,11 @@ public class StudentServiceTest {
 	void findStudentById_whenIdExists_returnsStudentData()
 	{
 		when(repo.findById(studentId)).thenReturn(Optional.of(student));
-		
 		ResponseEntity<?> response = service.isFoundStudentById(studentId);
-		
 		assertEquals(HttpStatus.OK, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
 		assertNotNull(body);
 		assertEquals(Messages.STUDENT_FOUND_BY_ID, body.getMessage());
-		
 	    StudentResponseDTO dto = (StudentResponseDTO) body.getData();
 	    assertNotNull(dto);
 		assertEquals(student.getStudentName(), dto.getStudentName());
@@ -224,15 +200,11 @@ public class StudentServiceTest {
 	void findStudentById_whenIdNotExists_returnsNotFound()
 	{
 		when(repo.findById(studentNotExitId)).thenReturn(Optional.empty());
-		
 		ResponseEntity<?> response = service.isFoundStudentById(studentNotExitId);
-		
 		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
 		assertNotNull(body);
 		assertEquals(Messages.STUDENT_NOT_FOUND_BY_ID + studentNotExitId, body.getMessage());
-		
 		assertNull(body.getData());
 	}
 	
@@ -240,14 +212,10 @@ public class StudentServiceTest {
 	void findStudentById_whenDatabaseFails_returnsInternalServerError()
 	{
 		when(repo.findById(studentId)).thenThrow(new RuntimeException("Database down"));
-		
 		ResponseEntity<?> response = service.isFoundStudentById(studentId);
-		
 		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
 		assertNotNull(body);
-		
 		assertEquals(Messages.DATABASE_ERROR, body.getMessage());
 		assertNull(body.getData());
 	}
@@ -258,12 +226,9 @@ public class StudentServiceTest {
 	void deleteStudentById_whenIdExists_returnsDeletedStudentData()
 	{
 		when(repo.findById(studentId)).thenReturn(Optional.of(student));
-		
 		doNothing().when(repo).deleteById(studentId);
-		
 		ResponseEntity<?> response = service.isStudentDeleted(studentId);
 		assertEquals(HttpStatus.OK, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
 		assertNotNull(body);
 		assertEquals(Messages.STUDENT_DELETED_SUCCESSFULLY, body.getMessage());
@@ -280,15 +245,11 @@ public class StudentServiceTest {
 	void deleteStudentById_whenIdNotExists_returnsNotFound()
 	{
 		when(repo.findById(studentNotExitId)).thenReturn(Optional.empty());
-		
 		ResponseEntity<?> response = service.isFoundStudentById(studentNotExitId);
-		
 		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
 		assertNotNull(body);
 		assertEquals(Messages.STUDENT_NOT_FOUND_BY_ID + studentNotExitId, body.getMessage());
-		
 		assertNull(body.getData());
 	}
 	
@@ -296,14 +257,10 @@ public class StudentServiceTest {
 	void deleteStudentById_whenDatabaseFails_returnsInternalServerError()
 	{
 		when(repo.findById(studentId)).thenThrow(new RuntimeException("Database down"));
-		
 		ResponseEntity<?> response = service.isFoundStudentById(studentId);
-		
 		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
 		assertNotNull(body);
-		
 		assertEquals(Messages.DATABASE_ERROR, body.getMessage());
 		assertNull(body.getData());
 	}
@@ -314,13 +271,9 @@ public class StudentServiceTest {
 	void updateStudentById_whenIdExists_returnsStudentUpdatedData()
 	{
 		when(repo.findById(studentId)).thenReturn(Optional.of(student));
-		
 		when(repo.save(any(Student.class))).thenReturn(updatedStudent);
-		
 		ResponseEntity<?> response = service.isStudentUpdated(studentId, request);
-		
 		assertEquals(HttpStatus.OK, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
 		assertNotNull(body);
 		assertEquals(Messages.STUDENT_UPDATED_SUCCESSFULLY, body.getMessage());
@@ -336,15 +289,11 @@ public class StudentServiceTest {
 	void updateStudnetById_whenIdNotExists_returnNotFound()
 	{
 		when(repo.findById(studentNotExitId)).thenReturn(Optional.empty());
-		
 		ResponseEntity<?> response = service.isFoundStudentById(studentNotExitId);
-		
 		assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
 		assertNotNull(body);
 		assertEquals(Messages.STUDENT_NOT_FOUND_BY_ID + studentNotExitId, body.getMessage());
-		
 		assertNull(body.getData());
 	}
 	
@@ -352,11 +301,8 @@ public class StudentServiceTest {
 	void updateStudentById_whenEmailExists_returnBadRequest()
 	{
 		when(repo.existsByStudentEmail(updateRequest.getStudentEmail())).thenReturn(true);
-		
 		ResponseEntity<?> response = service.isAddStudent(updateRequest);
-		
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
 		assertEquals(Messages.EMAIL_ALREADY_EXISTS, body.getMessage());
 	}
@@ -365,11 +311,8 @@ public class StudentServiceTest {
 	void updateStudentById_whenContactExists_returnBadRequest()
 	{
 		when(repo.existsByStudentContact(updateRequest.getStudentContact())).thenReturn(true);
-		
 		ResponseEntity<?> response = service.isAddStudent(updateRequest);
-		
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
 		assertEquals(Messages.CONTACT_ALREADY_EXISTS, body.getMessage());
 	}
@@ -378,14 +321,10 @@ public class StudentServiceTest {
 	void updateStudentById_whenDatabaseFails_returnInternalServerError()
 	{
 		when(repo.findById(studentId)).thenThrow(new RuntimeException("Database down"));
-		
 		ResponseEntity<?> response = service.isFoundStudentById(studentId);
-		
 		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-		
 		ResponseMessage<?> body = (ResponseMessage<?>) response.getBody();
 		assertNotNull(body);
-		
 		assertEquals(Messages.DATABASE_ERROR, body.getMessage());
 		assertNull(body.getData());
 	}

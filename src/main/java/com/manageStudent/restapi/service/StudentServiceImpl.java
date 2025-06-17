@@ -36,7 +36,7 @@ public class StudentServiceImpl implements StudentService {
 	}
 
 	@Override
-	public ResponseEntity<?> isAddStudent(StudentRequestDTO studentData) {
+	public ResponseEntity<ResponseMessage<?>> isAddStudent(StudentRequestDTO studentData) {
 		
 		logger.info("======= Service: In isAddStudent() ========");
 		
@@ -61,8 +61,8 @@ public class StudentServiceImpl implements StudentService {
 			Student student = mapper.toEntity(studentData);
 		
 			savedStudent = studentRepository.save(student);
-			mapper.toResponseDTO(savedStudent);
-			response = new ResponseMessage<>(HttpStatus.CREATED, Messages.STUDENT_ADDED_SUCCESSFULLY, mapper.toResponseDTO(savedStudent));
+			StudentResponseDTO responseDTO = mapper.toResponseDTO(savedStudent);
+			response = new ResponseMessage<>(HttpStatus.CREATED, Messages.STUDENT_ADDED_SUCCESSFULLY, responseDTO);
 			return ResponseEntity.status(response.getStatus()).body(response);
 		}
 		catch (Exception e) {
@@ -74,7 +74,7 @@ public class StudentServiceImpl implements StudentService {
 //=========================================== Add Student ====================================================================
 	
 	@Override
-	public ResponseEntity<?> findAllStudent() {
+	public ResponseEntity<ResponseMessage<?>> findAllStudent() {
 		
 		List<Student> all = null;
 		
@@ -111,7 +111,7 @@ public class StudentServiceImpl implements StudentService {
 //====================================== Find All Student =====================================================================
 	
 	@Override
-	public ResponseEntity<?> isFoundStudentById(Integer studentId) {
+	public ResponseEntity<ResponseMessage<?>> isFoundStudentById(Integer studentId) {
 
 		Optional<Student> studentData = null;
 		try {
@@ -136,7 +136,7 @@ public class StudentServiceImpl implements StudentService {
 //======================================= Find By Id ==========================================================================
 	
 	@Override
-	public ResponseEntity<?> isStudentDeleted(Integer id) {
+	public ResponseEntity<ResponseMessage<?>> isStudentDeleted(Integer id) {
 		
 		Optional<Student> studentData = null;
 		try {
@@ -163,7 +163,7 @@ public class StudentServiceImpl implements StudentService {
 //======================================== Delete By Id ======================================================================	
 	
 	@Override
-	public ResponseEntity<?> isStudentUpdated(Integer id, StudentRequestDTO studentData) {
+	public ResponseEntity<ResponseMessage<?>> isStudentUpdated(Integer id, StudentRequestDTO studentData) {
 		Optional<Student> studentById = null;
 		try {
 			studentById = studentRepository.findById(id);

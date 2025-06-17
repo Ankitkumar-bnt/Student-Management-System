@@ -6,19 +6,20 @@ import java.util.*;
 
 import com.manageStudent.restapi.dto.StudentRequestDTO;
 import com.manageStudent.restapi.entity.Student;
+import com.manageStudent.restapi.successResponce.ResponseMessage;
 
 @Service
 public interface StudentService {
 
-	ResponseEntity<?> isAddStudent(StudentRequestDTO studentData);
+	ResponseEntity<ResponseMessage<?>> isAddStudent(StudentRequestDTO studentData);
 	
-	ResponseEntity<?> findAllStudent();
+	ResponseEntity<ResponseMessage<?>> findAllStudent();
 	
-	ResponseEntity<?> isFoundStudentById(Integer studentId);
+	ResponseEntity<ResponseMessage<?>> isFoundStudentById(Integer studentId);
 
-	ResponseEntity<?> isStudentDeleted(Integer id);
+	ResponseEntity<ResponseMessage<?>> isStudentDeleted(Integer id);
 
-	ResponseEntity<?> isStudentUpdated(Integer id, StudentRequestDTO studentData);
+	ResponseEntity<ResponseMessage<?>> isStudentUpdated(Integer id, StudentRequestDTO studentData);
 
 
 }

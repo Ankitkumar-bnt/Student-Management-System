@@ -1,7 +1,6 @@
 package com.manageStudent.restapi.controller;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -21,13 +20,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.manageStudent.restapi.constants.Messages;
 import com.manageStudent.restapi.dto.StudentRequestDTO;
-import com.manageStudent.restapi.entity.Student;
-import com.manageStudent.restapi.exception.GlobleException;
 import com.manageStudent.restapi.service.StudentService;
 import com.manageStudent.restapi.successResponce.ResponseMessage;
-import com.manageStudent.restapi.successResponce.SuccessResponce;
 
 import jakarta.validation.Valid;
 
@@ -37,18 +32,12 @@ import jakarta.validation.Valid;
 @RequestMapping("/student")
 public class StudentController {
 
-    private final GlobleException globleException;
-
 	private static final Logger logger = LoggerFactory.getLogger(StudentController.class);
 	@Autowired
 	StudentService studentService;
-
-    StudentController(GlobleException globleException) {
-        this.globleException = globleException;
-    }
 	
 	@PostMapping("/addStudent")
-	public ResponseEntity<?> addStudent(@Valid @RequestBody StudentRequestDTO studentData, BindingResult bindingResult)
+	public ResponseEntity<ResponseMessage<?>> addStudent(@Valid @RequestBody StudentRequestDTO studentData, BindingResult bindingResult)
 	{
 		logger.info("=========== In addStudent API ============");
 		 if (bindingResult.hasErrors()) {
@@ -65,14 +54,15 @@ public class StudentController {
 	        );
 	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
 		 }
+		 
 		return studentService.isAddStudent(studentData);
 	}
 	
 	@GetMapping("/findAll")
-	public ResponseEntity<?> showAllStudent()
+	public ResponseEntity<ResponseMessage<?>> showAllStudent()
 	{
 		logger.info("============ in showAllStudent() ============");
-		ResponseEntity<?> studentList = studentService.findAllStudent();
+		ResponseEntity<ResponseMessage<?>> studentList = studentService.findAllStudent();
 		
 		logger.info("============ Studnet data fount is "+studentList+" ============");
 		
@@ -80,23 +70,23 @@ public class StudentController {
 	}
 	
 	@PostMapping("/findById")
-	public ResponseEntity<?> findStudentById(@RequestParam Integer id)
+	public ResponseEntity<ResponseMessage<?>> findStudentById(@RequestParam Integer id)
 	{
-		ResponseEntity<?> studentFoundById = studentService.isFoundStudentById(id);
+		ResponseEntity<ResponseMessage<?>> studentFoundById = studentService.isFoundStudentById(id);
 		
 		return studentFoundById;
 	}
 	
 	@DeleteMapping("/deleteById")
-	public ResponseEntity<?> deleteStudent(@RequestParam Integer id)
+	public ResponseEntity<ResponseMessage<?>> deleteStudent(@RequestParam Integer id)
 	{
-		ResponseEntity<?> studentDeleted = studentService.isStudentDeleted(id);
+		ResponseEntity<ResponseMessage<?>> studentDeleted = studentService.isStudentDeleted(id);
 		
 		return studentDeleted;
 	}
 	
 	@PatchMapping("/updateById/{id}")
-	public ResponseEntity<?> updateStudent(@PathVariable Integer id, @Valid @RequestBody StudentRequestDTO studentData, BindingResult bindingResult)
+	public ResponseEntity<ResponseMessage<?>> updateStudent(@PathVariable Integer id, @Valid @RequestBody StudentRequestDTO studentData, BindingResult bindingResult)
 	{
 		if(bindingResult.hasErrors())
 		{
@@ -108,7 +98,7 @@ public class StudentController {
 			ResponseMessage<Map<String, String>> response = new ResponseMessage<>(HttpStatus.BAD_REQUEST,"",null);
 			return ResponseEntity.status(response.getStatus()).body(response);
 		}
-		ResponseEntity<?> response = studentService.isStudentUpdated(id, studentData);
+		ResponseEntity<ResponseMessage<?>> response = studentService.isStudentUpdated(id, studentData);
 		
 		return response;
 	}
